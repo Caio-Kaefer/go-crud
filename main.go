@@ -1,6 +1,7 @@
 package main
 
 import (
+	"Caio-Kaefer/go-crud/controllers"
 	"Caio-Kaefer/go-crud/initializers"
 
 	"github.com/gin-gonic/gin"
@@ -8,14 +9,14 @@ import (
 
 func init() {
 	initializers.LoadEnvVariables()
+	initializers.ConnecttoDB()
 }
 
 func main() {
 	r := gin.Default()
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+	r.POST("/createuser", controllers.UsersCreate)
+	r.GET("/getusers", controllers.UsersRead)
+	r.PUT("/updateuser/:id", controllers.UpdateUser)
+	r.DELETE("/deleteuser/:id", controllers.DeleteUser)
 	r.Run()
 }
