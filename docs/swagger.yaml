@@ -1,0 +1,169 @@
+definitions:
+  controllers.CreateUserInput:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  controllers.LoginInput:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  controllers.UserListResponse:
+    properties:
+      users:
+        items:
+          $ref: '#/definitions/models.User'
+        type: array
+    type: object
+  controllers.UserResponse:
+    properties:
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  gorm.DeletedAt:
+    properties:
+      time:
+        type: string
+      valid:
+        description: Valid is true if Time is not NULL
+        type: boolean
+    type: object
+  models.User:
+    properties:
+      createdAt:
+        type: string
+      deletedAt:
+        $ref: '#/definitions/gorm.DeletedAt'
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      password:
+        type: string
+      updatedAt:
+        type: string
+    type: object
+host: localhost:3000
+info:
+  contact:
+    email: kaefer.caio@gmail.com
+    name: Caio Kaefer
+  description: Desafio Tecnico para Digital Sys
+  title: GO-CRUD
+  version: "1"
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Objeto JSON contendo dados do usuário
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.LoginInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário logado com sucesso
+          schema:
+            type: string
+      summary: Autenticação
+      tags:
+      - Auth
+  /api/v1/users/createuser:
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Objeto JSON contendo dados do usuário
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UserResponse'
+      summary: Cria um usuário
+      tags:
+      - Users
+  /api/v1/users/deleteuser/{id}:
+    delete:
+      parameters:
+      - description: ID do usuário a ser excluído
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Usuário excluído com sucesso
+          schema:
+            type: string
+      summary: Deleta um usuário pelo ID
+      tags:
+      - Users
+  /api/v1/users/getusers:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UserListResponse'
+      summary: Retorna uma lista de usuários
+      tags:
+      - Users
+  /api/v1/users/updateuser/{id}:
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: ID do usuário a ser atualizado
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Objeto JSON contendo novos dados do usuário
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateUserInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/controllers.UserResponse'
+      summary: Atualiza um usuário existente
+      tags:
+      - Users
+swagger: "2.0"

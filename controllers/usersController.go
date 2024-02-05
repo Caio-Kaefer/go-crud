@@ -1,5 +1,6 @@
 package controllers
 
+//Controller de usuarios
 import (
 	"Caio-Kaefer/go-crud/initializers"
 	"Caio-Kaefer/go-crud/models"
@@ -13,27 +14,47 @@ type CreateUserInput struct {
 	Password string `json:"password" binding:"required"`
 }
 
-// CREATE
+type UserResponse struct {
+	User models.User `json:"user"`
+}
+
+type UserListResponse struct {
+	Users []models.User `json:"users"`
+}
+
+// UsersCreate cria um usuário
+// @Summary Cria um usuário
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param body body CreateUserInput true "Objeto JSON contendo dados do usuário"
+// @Success 200 {object} UserResponse
+// @Router /api/v1/users/createuser [post]
 func UsersCreate(c *gin.Context) {
 	var userInput CreateUserInput
-	// erro nos campos
+	// Verifica os campos
 	if err := c.ShouldBindJSON(&userInput); err != nil {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
 
 	user := models.User{Name: userInput.Name, Email: userInput.Email, Password: userInput.Password}
-	//inserir no banco
+	// Insere no banco
 	result := initializers.DB.Create(&user)
 	if result.Error != nil {
 		c.JSON(400, gin.H{"error": "Erro ao criar usuário"})
 		return
 	}
-	//retorno
-	c.JSON(200, gin.H{"user": user})
+	// Retorna uma mensagem de sucesso
+	c.JSON(200, user)
 }
 
-// READ
+// UsersRead retorna uma lista de todos os usuários
+// @Summary Retorna uma lista de usuários
+// @Tags Users
+// @Produce json
+// @Success 200 {object} UserListResponse
+// @Router /api/v1/users/getusers [get]
 func UsersRead(c *gin.Context) {
 	var users []models.User
 	result := initializers.DB.Find(&users)
@@ -42,16 +63,28 @@ func UsersRead(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, gin.H{"users": users})
+	response := UserListResponse{
+		Users: users,
+	}
+
+	c.JSON(200, response)
 }
 
-// UPDATE
+// UpdateUser atualiza as informações de um usuário pelo ID
+// @Summary Atualiza um usuário existente
+// @Tags Users
+// @Accept json
+// @Produce json
+// @Param id path string true "ID do usuário a ser atualizado"
+// @Param body body CreateUserInput true "Objeto JSON contendo novos dados do usuário"
+// @Success 200 {object} UserResponse
+// @Router /api/v1/users/updateuser/{id} [put]
 func UpdateUser(c *gin.Context) {
-	//pegar o id pela url
+	// Pegar o ID pela URL
 	userID := c.Param("id")
 	var existingUser models.User
 	result := initializers.DB.First(&existingUser, userID)
-	//verificando se o usuário existe
+	// Verifica se o usuário existe
 	if result.Error != nil {
 		c.JSON(404, gin.H{"error": "Usuário não encontrado"})
 		return
@@ -63,27 +96,33 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
-	// Atualizar os campos
+	// Atualiza os campos
 	existingUser.Name = userInput.Name
 	existingUser.Email = userInput.Email
 	existingUser.Password = userInput.Password
 
-	// Salvar as alterações e verificar erros
+	// Salva as alterações e verifica erros
 	if err := initializers.DB.Save(&existingUser).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Erro ao atualizar usuário"})
 		return
 	}
 
-	// Retorno
-	c.JSON(200, gin.H{"user": existingUser})
+	// Retorna uma mensagem de sucesso
+	c.JSON(200, existingUser)
 }
 
-// DELETE
+// DeleteUser deleta um usuário pelo ID
+// @Summary Deleta um usuário pelo ID
+// @Tags Users
+// @Produce json
+// @Param id path string true "ID do usuário a ser excluído"
+// @Success 200 {string} string "Usuário excluído com sucesso"
+// @Router /api/v1/users/deleteuser/{id} [delete]
 func DeleteUser(c *gin.Context) {
-	//pegar o id pela url
+	// Pegar o ID pela URL
 	userID := c.Param("id")
 
-	//verificar se o usuario existe
+	// Verifica se o usuário existe
 	var existingUser models.User
 	result := initializers.DB.First(&existingUser, userID)
 	if result.Error != nil {
@@ -91,12 +130,12 @@ func DeleteUser(c *gin.Context) {
 		return
 	}
 
-	// Excluir o usuário
+	// Exclui o usuário
 	if err := initializers.DB.Delete(&existingUser).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Erro ao excluir usuário"})
 		return
 	}
 
-	// Retorno
-	c.JSON(200, gin.H{"message": "Usuário excluído com sucesso"})
+	// Retorna uma mensagem de sucesso
+	c.JSON(200, "Usuário excluído com sucesso")
 }
