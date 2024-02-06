@@ -42,7 +42,7 @@ func main() {
 		user.PUT("/updateuser/:id", controllers.UpdateUser)
 
 		// DELETE
-		r.DELETE("/deleteuser/:id", controllers.DeleteUser)
+		user.DELETE("/deleteuser/:id", controllers.DeleteUser)
 	}
 
 	auth := v1.Group("/auth")

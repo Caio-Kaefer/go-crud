@@ -38,19 +38,32 @@ func UsersCreate(c *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := HashPassword(userInput.Password)
-	if err != nil {
-		c.JSON(400, gin.H{"error": "erro ao criptografar senha"})
-	}
-
-	user := models.User{Name: userInput.Name, Email: userInput.Email, Password: hashedPassword}
-	// Insere no banco
-	result := initializers.DB.Create(&user)
-	if result.Error != nil {
-		c.JSON(400, gin.H{"error": "Erro ao criar usuário"})
+	// Verifica se o usuário já existe no banco de dados
+	var existingUser models.User
+	result := initializers.DB.Where("email = ?", userInput.Email).First(&existingUser)
+	if result.Error == nil {
+		c.JSON(400, gin.H{"error": "Usuário já cadastrado"})
 		return
 	}
-	// Retorna uma mensagem de sucesso
+
+	// Criptografa a senha do usuário
+	hashedPassword, err := HashPassword(userInput.Password)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Erro ao criptografar senha"})
+		return
+	}
+
+	// Cria um novo usuário com os dados fornecidos
+	user := models.User{Name: userInput.Name, Email: userInput.Email, Password: hashedPassword}
+
+	// Insere no banco de dados
+	result = initializers.DB.Create(&user)
+	if result.Error != nil {
+		c.JSON(500, gin.H{"error": "Erro ao criar usuário"})
+		return
+	}
+
+	// Retorna os dados do usuário criado
 	c.JSON(200, user)
 }
 
@@ -100,11 +113,15 @@ func UpdateUser(c *gin.Context) {
 		c.JSON(400, gin.H{"error": "Dados inválidos"})
 		return
 	}
-
+	hashedPassword, err := HashPassword(userInput.Password)
+	if err != nil {
+		c.JSON(500, gin.H{"error": "Erro ao criptografar senha"})
+		return
+	}
 	// Atualiza os campos
 	existingUser.Name = userInput.Name
 	existingUser.Email = userInput.Email
-	existingUser.Password = userInput.Password
+	existingUser.Password = hashedPassword
 
 	// Salva as alterações e verifica erros
 	if err := initializers.DB.Save(&existingUser).Error; err != nil {
@@ -124,17 +141,14 @@ func UpdateUser(c *gin.Context) {
 // @Success 200 {string} string "Usuário excluído com sucesso"
 // @Router /api/v1/users/deleteuser/{id} [delete]
 func DeleteUser(c *gin.Context) {
-	// Pegar o ID pela URL
 	userID := c.Param("id")
-
-	// Verifica se o usuário existe
 	var existingUser models.User
 	result := initializers.DB.First(&existingUser, userID)
+	// Verifica se o usuário existe
 	if result.Error != nil {
 		c.JSON(404, gin.H{"error": "Usuário não encontrado"})
 		return
 	}
-
 	// Exclui o usuário
 	if err := initializers.DB.Delete(&existingUser).Error; err != nil {
 		c.JSON(500, gin.H{"error": "Erro ao excluir usuário"})
@@ -142,5 +156,5 @@ func DeleteUser(c *gin.Context) {
 	}
 
 	// Retorna uma mensagem de sucesso
-	c.JSON(200, "Usuário excluído com sucesso")
+	c.JSON(200, gin.H{"message": "Usuário com ID " + userID + " excluído com sucesso"})
 }
