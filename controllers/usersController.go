@@ -38,7 +38,12 @@ func UsersCreate(c *gin.Context) {
 		return
 	}
 
-	user := models.User{Name: userInput.Name, Email: userInput.Email, Password: userInput.Password}
+	hashedPassword, err := HashPassword(userInput.Password)
+	if err != nil {
+		c.JSON(400, gin.H{"error": "erro ao criptografar senha"})
+	}
+
+	user := models.User{Name: userInput.Name, Email: userInput.Email, Password: hashedPassword}
 	// Insere no banco
 	result := initializers.DB.Create(&user)
 	if result.Error != nil {

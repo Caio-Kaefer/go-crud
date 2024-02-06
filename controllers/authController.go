@@ -45,7 +45,7 @@ func Auth(c *gin.Context) {
 	}
 
 	// Verifica se a senha está correta
-	if user.Password != logininput.Password {
+	if CheckPasswordHash(logininput.Password, user.Password) == false {
 		c.JSON(401, gin.H{"error": "Credenciais inválidas"})
 		return
 	}
