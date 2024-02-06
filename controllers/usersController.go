@@ -37,10 +37,18 @@ func UsersCreate(c *gin.Context) {
 		c.JSON(400, gin.H{"error": err.Error()})
 		return
 	}
+	var existingUser models.User
+
+	userInDb := initializers.DB.Where("email = ?", userInput.Email).First(&existingUser)
+	if userInDb != nil {
+		c.JSON(400, gin.H{"error": "usuário ja cadastrado"})
+		return
+	}
 
 	hashedPassword, err := HashPassword(userInput.Password)
 	if err != nil {
 		c.JSON(400, gin.H{"error": "erro ao criptografar senha"})
+		return
 	}
 
 	user := models.User{Name: userInput.Name, Email: userInput.Email, Password: hashedPassword}
