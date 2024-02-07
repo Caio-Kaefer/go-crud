@@ -25,6 +25,11 @@ func init() {
 //@host localhost:3000
 //BasePath /api/v1
 
+//.env values used:
+// PORT = 3000
+// DB_URL = "root:@tcp(127.0.0.1:3306)/go-crud?charset=utf8mb4&parseTime=True&loc=Local"
+// JWT_KEY = "Htj-KhO5oETPPIP-prJ6CvzVVy2NjRmKH0OyHdKolkY"
+
 func main() {
 
 	r := gin.Default()
